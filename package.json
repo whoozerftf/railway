@@ -1,0 +1,14 @@
+{
+  "name": "woostock-backend",
+  "version": "1.0.0",
+  "main": "js/woostock.js",
+  "type": "module",
+  "scripts": {
+    "start": "node js/woostock.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "node-fetch": "^3.3.2"
+  }
+}
