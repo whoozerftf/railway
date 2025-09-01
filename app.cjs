@@ -1,3 +1,7 @@
+// Daftar bundle dan item di dalamnya
+const BUNDLE_MAP = {
+  "166": ["147", "148", "152"] // bundle 166 terdiri dari produk 147, 148, 152
+};
 
 // --- Simple Express.js server for Railway ---
 const express = require('express');
@@ -14,6 +18,25 @@ const CONSUMER_SECRET = process.env.WOOCOMMERCE_SECRET;
 // Endpoint: /api/stock/:productId
 app.get('/api/stock/:productId', async (req, res) => {
   const { productId } = req.params;
+  // Cek jika productId adalah bundle
+  if (BUNDLE_MAP[productId]) {
+    try {
+      // Ambil stok semua item di bundle
+      const itemIds = BUNDLE_MAP[productId];
+      let minStock = Infinity;
+      for (const id of itemIds) {
+        const urlSimple = `${WOOCOMMERCE_URL}/${id}?consumer_key=${CONSUMER_KEY}&consumer_secret=${CONSUMER_SECRET}`;
+        const responseSimple = await fetch(urlSimple);
+        const dataSimple = await responseSimple.json();
+        console.log(`[BUNDLE DEBUG] ID: ${id}, Response:`, dataSimple);
+        const stock = dataSimple.stock_quantity || 0;
+        if (stock < minStock) minStock = stock;
+      }
+      return res.json({ ALL: minStock === Infinity ? 0 : minStock });
+    } catch (e) {
+      return res.status(500).json({ error: 'Gagal mengambil stok bundle', detail: e.message });
+    }
+  }
   try {
     // Try to get variations (for variable products)
     const urlVar = `${WOOCOMMERCE_URL}/${productId}/variations?consumer_key=${CONSUMER_KEY}&consumer_secret=${CONSUMER_SECRET}`;
